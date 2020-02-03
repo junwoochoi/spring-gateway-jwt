@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -16,10 +18,10 @@ public class FilterConfig {
     @Bean
     public GatewayFilter authFilter() {
         return (exchange, chain) -> {
-            final List<String> authorizationHeaders = exchange.getRequest().getHeaders().getOrEmpty(HttpHeaders.AUTHORIZATION);
-            if (CollectionUtils.isEmpty(authorizationHeaders) || JwtUtils.isValid(authorizationHeaders.get(0))) {
+            final String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (StringUtils.isEmpty(authorizationHeader) || !JwtUtils.isValid(authorizationHeader)) {
                 exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                return chain.filter(exchange);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "user not authorized");
             }
 
             return chain.filter(exchange);
