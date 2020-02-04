@@ -31,7 +31,7 @@ public class TokenProvider {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final Date now = new Date();
-        final Date exp = new Date(now.getTime() + 60 * 60 * 4);
+        final Date exp = new Date(now.getTime() + 60 * 60 * 4 * 1000);
         final String roles = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)

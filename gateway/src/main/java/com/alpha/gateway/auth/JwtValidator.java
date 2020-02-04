@@ -1,14 +1,18 @@
 package com.alpha.gateway.auth;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.JacksonDeserializer;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class JwtValidator {
     public static final String TOKEN_PREFIX = "bearer";
@@ -33,10 +37,11 @@ public class JwtValidator {
 
         try {
             Jwts.parser()
-                    .setSigningKey(key)
+                    .setSigningKey(Keys.hmacShaKeyFor(key.getBytes()))
                     .deserializeJsonWith(jacksonDeserializer)
                     .parse(actualToken);
-        } catch (RuntimeException e) {
+        } catch (JwtException e) {
+            log.warn("failed to validate Token : {} ", e.toString());
             return false;
         }
 
