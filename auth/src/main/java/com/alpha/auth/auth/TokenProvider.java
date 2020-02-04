@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -22,7 +23,7 @@ import static java.util.stream.Collectors.joining;
 public class TokenProvider {
 
     public static final String COMMA = ",";
-    private final JacksonSerializer jacksonSerializer;
+    private final JacksonSerializer<Map<String, ?>> jacksonSerializer;
     @Value("${token.key}")
     private String key;
 
@@ -48,7 +49,6 @@ public class TokenProvider {
                         SignatureAlgorithm.HS256
                 )
                 .compact();
-        ;
 
         return new TokenResponse(accessToken, accessToken);
     }

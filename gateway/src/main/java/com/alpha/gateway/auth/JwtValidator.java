@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
 @RequiredArgsConstructor
 public class JwtValidator {
@@ -13,7 +15,7 @@ public class JwtValidator {
     public static final String BLANK = " ";
     public static final int TOKEN_POSITION = 1;
 
-    private final JacksonDeserializer jacksonDeserializer;
+    private final JacksonDeserializer<Map<String, ?>> jacksonDeserializer;
 
     @Value("${token.key}")
     private String key;
