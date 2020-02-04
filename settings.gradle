@@ -5,4 +5,5 @@ include 'auth'
 include 'member'
 include 'member-core'
 include 'jwt-core'
+include 'resource-example'
 
