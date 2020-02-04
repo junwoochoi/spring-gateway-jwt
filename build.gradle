@@ -51,3 +51,23 @@ subprojects {
         }
     }
 }
+
+
+project(":auth"){
+    dependencies {
+        compile project(":member-core")
+        compile project(":jwt-core")
+    }
+}
+
+project(":member"){
+    dependencies {
+        compile project(":member-core")
+    }
+}
+
+project(":gateway"){
+    dependencies {
+        compile project(":jwt-core")
+    }
+}

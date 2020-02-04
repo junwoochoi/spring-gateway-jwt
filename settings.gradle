@@ -2,4 +2,7 @@ rootProject.name = 'sample'
 
 include 'gateway'
 include 'auth'
+include 'member'
+include 'member-core'
+include 'jwt-core'
 

@@ -1,4 +1,4 @@
-package com.alpha.auth.domain.user;
+package com.alpha.member.domain.user;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,7 +18,7 @@ public class User {
     @Column(name = "nick_name", nullable = false)
     private String nickName;
 
-    @Column(name = "email", nullable = false, updatable = false)
+    @Column(name = "email", nullable = false, updatable = false, unique = true)
     private String email;
 
     @Column(name = "password", nullable = false)
