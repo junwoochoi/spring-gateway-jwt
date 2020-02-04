@@ -7,3 +7,6 @@ token.key: zuminternetveryverygoodgoodhelloworldzuminternetveryverygoodgoodhello
 spring:
   profiles:
     include: local-db
+  redis:
+    host: localhost
+    port: 6379

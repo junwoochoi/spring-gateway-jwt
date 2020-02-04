@@ -23,6 +23,8 @@ import static java.util.stream.Collectors.joining;
 public class TokenProvider {
 
     public static final String COMMA = ",";
+    public static final int ONE_MIN = 60 * 1000;
+    public static final int ONE_HOUR = 60 * ONE_MIN;
     private final JacksonSerializer<Map<String, ?>> jacksonSerializer;
     @Value("${token.key}")
     private String key;
@@ -31,7 +33,9 @@ public class TokenProvider {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final Date now = new Date();
-        final Date exp = new Date(now.getTime() + 60 * 60 * 4 * 1000);
+//        final Date accessTokenExpire = new Date(now.getTime() + 60 * ONE_MIN);
+        final Date accessTokenExpire = new Date(now.getTime() + ONE_MIN);
+        final Date refreshTokenExpire = new Date(now.getTime() + ONE_HOUR * 24 * 4);
         final String roles = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
@@ -39,7 +43,7 @@ public class TokenProvider {
 
         final String accessToken = Jwts.builder()
                 .setIssuedAt(new Date())
-                .setExpiration(exp)
+                .setExpiration(accessTokenExpire)
                 .setSubject(authentication.getName())
                 .setHeaderParam("typ", "JWT")
                 .setHeaderParam("roles", roles)
@@ -49,6 +53,21 @@ public class TokenProvider {
                         SignatureAlgorithm.HS256
                 )
                 .compact();
+        final String refreshToken = Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(refreshTokenExpire)
+                .setSubject(authentication.getName())
+                .setHeaderParam("typ", "JWT")
+                .setHeaderParam("roles", roles)
+                .serializeToJsonWith(jacksonSerializer)
+                .signWith(
+                        Keys.hmacShaKeyFor(key.getBytes()),
+                        SignatureAlgorithm.HS256
+                )
+                .compact();
+
+
+
 
         return new TokenResponse(accessToken, accessToken);
     }
