@@ -1,14 +1,11 @@
 package com.alpha.auth.auth;
 
-import com.alpha.member.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -18,8 +15,9 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final TokenProvider tokenProvider;
+    private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
-    private final RefreshTokenAuthenticationManager refreshTokenAuthenticationManager;
+    private final TokenAuthenticationManager tokenAuthenticationManager;
 
     @PostMapping("/api/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationRequestDto authenticationRequestDto) {
@@ -38,8 +36,15 @@ public class AuthController {
             return ResponseEntity.badRequest().body("grant_type invalid");
         }
 
-        final TokenUser tokenUser = refreshTokenAuthenticationManager.authenticate(refreshToken);
+        final TokenUser tokenUser = tokenAuthenticationManager.authenticateRefreshToken(refreshToken);
         return ResponseEntity.ok(tokenProvider.createToken(tokenUser));
+    }
+
+    @PostMapping("/api/logout")
+    public ResponseEntity logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken) {
+        final TokenUser tokenUser = tokenAuthenticationManager.authenticateAccessToken(bearerToken);
+        tokenService.logout(tokenUser);
+        return ResponseEntity.ok(tokenUser.getName());
     }
 
 

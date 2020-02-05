@@ -1,32 +1,24 @@
 package com.alpha.auth.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
+import com.alpha.utils.JwtValidator;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.authentication.AuthenticationManagerFactoryBean;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.util.Collection;
 
 import static com.alpha.auth.auth.TokenProvider.REFRESHTOKEN_PREFIX_KEY;
 
 @Component
 @RequiredArgsConstructor
-public class RefreshTokenAuthenticationManager {
+public class TokenAuthenticationManager {
 
     private final StringRedisTemplate redisTemplate;
+    private final JwtValidator jwtValidator;
 
-    public TokenUser authenticate(String refreshToken) throws AuthenticationException {
+    public TokenUser authenticateRefreshToken(String refreshToken) throws AuthenticationException {
         if (StringUtils.isEmpty(refreshToken)) {
             throw new BadCredentialsException("request empty");
         }
@@ -39,6 +31,14 @@ public class RefreshTokenAuthenticationManager {
             throw new BadCredentialsException("bad credential");
         }
 
+        return new TokenUser(sub, roles);
+    }
+
+    public TokenUser authenticateAccessToken(String bearerToken) {
+        final Jws<Claims> parsedToken = jwtValidator.parse(bearerToken);
+        final Claims claims = parsedToken.getBody();
+        final String sub = claims.get("sub", String.class);
+        final String roles = claims.get("roles", String.class);
         return new TokenUser(sub, roles);
     }
 

@@ -1,5 +1,6 @@
 package com.alpha.gateway.route;
 
+import com.alpha.gateway.filter.LogoutFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
@@ -25,6 +26,23 @@ public class RouterConfig {
                 )
                 .build();
     }
+
+    @Bean
+    public RouteLocator logoutRoute(RouteLocatorBuilder builder, @Value("${auth.url}") String authServerUrl, LogoutFilter logoutFilter) {
+        return builder.routes()
+                .route(predicateSpec -> predicateSpec.path("/api/v0/logout")
+                        .and()
+                        .method(HttpMethod.POST)
+                        .filters(f -> {
+                            f.rewritePath("/api/v0/logout", "/api/logout");
+                            return f.filter(logoutFilter);
+                        })
+                        .uri(authServerUrl)
+                        .id("auth")
+                )
+                .build();
+    }
+
 
     @Bean
     public RouteLocator refreshTokenRoute(RouteLocatorBuilder builder, @Value("${auth.url}") String authServerUrl) {

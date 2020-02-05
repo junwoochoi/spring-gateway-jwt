@@ -30,8 +30,7 @@ public class TokenProvider {
     public TokenResponse createToken(TokenUser tokenUser) {
 
         final Date now = new Date();
-//        final Date accessTokenExpire = new Date(now.getTime() + 60 * ONE_MIN);
-        final Date accessTokenExpire = new Date(now.getTime() + (ONE_MIN/2));
+        final Date accessTokenExpire = new Date(now.getTime() + 20 * ONE_MIN);
         final Date refreshTokenExpire = new Date(now.getTime() + ONE_HOUR * 24 * 4);
         final String roles = tokenUser.getRoles();
 

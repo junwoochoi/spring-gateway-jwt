@@ -1,9 +1,6 @@
-package com.alpha.gateway.auth;
+package com.alpha.utils;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.JacksonDeserializer;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -29,6 +26,23 @@ public class JwtValidator {
     private String key;
 
     public void validate(String token) {
+        validateInputToken(token);
+
+        final String actualToken = parseActualToken(token);
+
+        parseToken(actualToken);
+    }
+
+    public Jws<Claims> parse(String token) {
+        validateInputToken(token);
+
+        final String actualToken = parseActualToken(token);
+
+        return parseToken(actualToken);
+    }
+
+
+    private void validateInputToken(String token) {
         if (isEmpty(token)) {
             throw new IllegalArgumentException("token is empty");
         }
@@ -36,14 +50,22 @@ public class JwtValidator {
         if (!token.contains(TOKEN_PREFIX)) {
             throw new IllegalArgumentException("token should present with 'bearer' prefix");
         }
+    }
 
-        final String actualToken = parseActualToken(token);
+    public String parseActualToken(String token) {
+        final String[] split = token.split(BLANK);
+        if (split.length < TOKEN_POSITION+1) {
+            throw new IllegalArgumentException("token should presented");
+        }
+        return split[TOKEN_POSITION];
+    }
 
+    private Jws<Claims> parseToken(String actualToken) {
         try {
-            Jwts.parser()
+            return Jwts.parser()
                     .setSigningKey(Keys.hmacShaKeyFor(key.getBytes()))
                     .deserializeJsonWith(jacksonDeserializer)
-                    .parse(actualToken);
+                    .parseClaimsJws(actualToken);
         } catch (ExpiredJwtException e) {
             log.warn("expired Token : {} ", e.toString());
             throw e;
@@ -56,11 +78,4 @@ public class JwtValidator {
     private boolean isEmpty(String token) {
         return token == null || token.length() == 0;
     }
-
-    private static String parseActualToken(String token) {
-        final String[] split = token.split(BLANK);
-        return split[TOKEN_POSITION];
-    }
-
-
 }
