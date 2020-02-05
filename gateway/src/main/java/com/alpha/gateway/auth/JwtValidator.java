@@ -1,9 +1,13 @@
 package com.alpha.gateway.auth;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.JacksonDeserializer;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.security.WeakKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +28,13 @@ public class JwtValidator {
     @Value("${token.key}")
     private String key;
 
-    public boolean isValid(String token) {
+    public void validate(String token) {
         if (isEmpty(token)) {
-            return false;
+            throw new IllegalArgumentException("token is empty");
         }
 
         if (!token.contains(TOKEN_PREFIX)) {
-            return false;
+            throw new IllegalArgumentException("token should present with 'bearer' prefix");
         }
 
         final String actualToken = parseActualToken(token);
@@ -40,12 +44,13 @@ public class JwtValidator {
                     .setSigningKey(Keys.hmacShaKeyFor(key.getBytes()))
                     .deserializeJsonWith(jacksonDeserializer)
                     .parse(actualToken);
-        } catch (JwtException e) {
+        } catch (ExpiredJwtException e) {
+            log.warn("expired Token : {} ", e.toString());
+            throw e;
+        } catch (MalformedJwtException | SignatureException | WeakKeyException e) {
             log.warn("failed to validate Token : {} ", e.toString());
-            return false;
+            throw e;
         }
-
-        return true;
     }
 
     private boolean isEmpty(String token) {
@@ -56,5 +61,6 @@ public class JwtValidator {
         final String[] split = token.split(BLANK);
         return split[TOKEN_POSITION];
     }
+
 
 }

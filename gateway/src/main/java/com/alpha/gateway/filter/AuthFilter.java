@@ -1,6 +1,8 @@
 package com.alpha.gateway.filter;
 
 import com.alpha.gateway.auth.JwtValidator;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -22,9 +24,18 @@ public class AuthFilter implements GatewayFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         final String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isEmpty(authorizationHeader) || !jwtValidator.isValid(authorizationHeader)) {
-            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "user not authorized");
+        if (StringUtils.isEmpty(authorizationHeader)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization Header Empty");
+        }
+
+        try {
+            jwtValidator.validate(authorizationHeader);
+        } catch (ExpiredJwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token is expired, should regenerate with refresh token");
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token is not valid");
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
 
         return chain.filter(exchange);
