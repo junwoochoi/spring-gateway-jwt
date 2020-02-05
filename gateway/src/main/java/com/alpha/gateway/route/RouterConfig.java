@@ -22,8 +22,19 @@ public class RouterConfig {
                         .filters(f -> f.rewritePath("/api/v0/login", "/api/login"))
                         .uri(authServerUrl)
                         .id("auth")
+                )
+                .build();
+    }
 
-
+    @Bean
+    public RouteLocator refreshTokenRoute(RouteLocatorBuilder builder, @Value("${auth.url}") String authServerUrl) {
+        return builder.routes()
+                .route(predicateSpec -> predicateSpec.path("/api/v0/login/refreshtoken")
+                        .and()
+                        .method(HttpMethod.POST)
+                        .filters(f -> f.rewritePath("/api/v0/login/refreshtoken", "/api/login/refreshtoken"))
+                        .uri(authServerUrl)
+                        .id("auth")
                 )
                 .build();
     }
@@ -42,12 +53,12 @@ public class RouterConfig {
 
     @Bean
     public RouteLocator registerRoute(RouteLocatorBuilder builder, GatewayFilter authFilter,
-                                    @Value("${member.url}") String memberUrl) {
+                                      @Value("${member.url}") String memberUrl) {
         return builder.routes()
                 .route(predicateSpec -> predicateSpec.path("/api/v0/register")
                         .and()
                         .method(HttpMethod.POST)
-                        .filters(f->f.rewritePath("/api/v0/register", "/api/register"))
+                        .filters(f -> f.rewritePath("/api/v0/register", "/api/register"))
                         .uri(memberUrl)
                         .id("register")
                 )
